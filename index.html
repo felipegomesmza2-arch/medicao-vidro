@@ -3,105 +3,108 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vidraçaria Pro - Gestão Integrada</title>
+    <title>Vidraçaria Pro - Gestão e Campo</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
     <style>
-        :root { --primary: #0284c7; --secondary: #10b981; --bg: #f1f5f9; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding-bottom: 50px; }
-        .header { background: var(--primary); color: white; padding: 15px; text-align: center; font-weight: bold; }
-        .nav { display: flex; background: white; border-bottom: 1px solid #ddd; position: sticky; top: 0; z-index: 100; }
-        .nav-btn { flex: 1; padding: 15px; border: none; background: none; font-weight: bold; color: #64748b; cursor: pointer; }
-        .nav-btn.active { color: var(--primary); border-bottom: 3px solid var(--primary); }
+        :root { --primary: #0284c7; --secondary: #10b981; --bg: #f1f5f9; --white: #ffffff; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding-bottom: 60px; }
+        .header { background: var(--primary); color: white; padding: 15px; text-align: center; font-weight: bold; position: sticky; top: 0; z-index: 100; }
+        .nav { display: flex; background: white; border-bottom: 1px solid #ddd; }
+        .nav-btn { flex: 1; padding: 15px; border: none; background: none; font-weight: bold; cursor: pointer; color: #64748b; font-size: 0.85rem; }
+        .nav-btn.active { color: var(--primary); border-bottom: 3px solid var(--primary); background: #f8fafc; }
         .container { padding: 15px; max-width: 600px; margin: auto; }
-        .card { background: white; padding: 18px; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 15px; }
+        .card { background: var(--white); padding: 18px; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 15px; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
-        label { display: block; margin: 10px 0 5px; font-weight: 600; font-size: 0.85rem; color: #475569; }
-        input, select, textarea { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; box-sizing: border-box; font-size: 1rem; margin-bottom: 5px; }
+        h3 { color: #1e293b; margin: -5px 0 15px 0; font-size: 1.1rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; }
+        label { display: block; margin: 12px 0 5px; font-weight: 600; color: #475569; font-size: 0.85rem; }
+        input, select, textarea { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; box-sizing: border-box; font-size: 1rem; }
         .btn { border: none; padding: 15px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; font-size: 0.9rem; transition: 0.2s; }
-        .btn:active { transform: scale(0.98); }
         .btn-main { background: var(--primary); color: white; }
         .btn-gps { background: #6366f1; color: white; }
         .btn-save { background: var(--secondary); color: white; }
         .btn-pdf { background: #ef4444; color: white; }
-        .venda-card { background: white; border-left: 5px solid #cbd5e1; padding: 12px; border-radius: 8px; margin-bottom: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-        .status-prospeccao { border-left-color: #94a3b8; }
-        .status-orcamento { border-left-color: #f59e0b; }
-        .status-fechado { border-left-color: #10b981; }
+        .btn-wpp { background: #25d366; color: white; }
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .venda-card { background: white; border-left: 5px solid #0284c7; padding: 12px; border-radius: 8px; margin-bottom: 10px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); font-size: 0.9rem; }
         #preview { max-width: 100%; border-radius: 8px; display: none; margin: 10px 0; border: 1px solid #ddd; }
-        .search-box { display: flex; gap: 8px; margin-bottom: 15px; }
+        .history-info { background: #fefce8; border: 1px dashed #facc15; padding: 10px; border-radius: 8px; font-size: 0.85rem; color: #854d0e; margin-top: 10px; display: none; white-space: pre-wrap; }
     </style>
 </head>
 <body>
 
-<div class="header">VIDRAÇARIA PRO - CRM & MEDIÇÕES</div>
+<div class="header">VIDRAÇARIA PRO - INTEGRADO</div>
 
 <div class="nav">
-    <button class="nav-btn active" onclick="openTab('crm')">🏠 CLIENTES</button>
-    <button class="nav-btn" onclick="openTab('medicao')">📏 MEDIÇÕES</button>
+    <button class="nav-btn active" id="btn-tab-crm" onclick="openTab('crm')">🏠 CRM / FUNIL</button>
+    <button class="nav-btn" id="btn-tab-med" onclick="openTab('medicao')">📏 MEDIÇÃO & WPP</button>
 </div>
 
 <div class="container">
-    
     <div id="crm" class="tab-content active">
         <div class="card">
-            <h2>🔍 Pesquisar Cliente</h2>
-            <div class="search-box">
-                <input type="text" id="busca_cliente" placeholder="Nome do cliente salvo...">
+            <h3>🔍 Buscar Cliente</h3>
+            <div style="display: flex; gap: 8px;">
+                <input type="text" id="busca_cliente" placeholder="Nome do cliente...">
                 <button class="btn btn-main" style="width: 40%; margin-top:0" onclick="buscarNaPlanilha()">BUSCAR</button>
             </div>
-            <div id="status_busca"></div>
+            <div id="status_busca" style="margin-top: 10px; font-size: 0.85rem;"></div>
         </div>
-
         <div class="card">
-            <h2>📝 Dados do Cliente</h2>
+            <h3>📝 Gestão de Vendas</h3>
             <input type="text" id="c_nome" placeholder="Nome Completo">
             <input type="tel" id="c_tel" placeholder="WhatsApp">
             <input type="text" id="c_end" placeholder="Endereço">
-            
-            <button class="btn btn-gps" onclick="pegarLocalizacao()">📍 CAPTURAR GPS</button>
-            <input type="text" id="c_gps" placeholder="Link do Google Maps" readonly>
-
+            <button class="btn btn-gps" onclick="pegarLocalizacao()">📍 GPS DA OBRA</button>
+            <input type="text" id="c_gps" placeholder="Link Maps" readonly style="background: #f8fafc; font-size: 0.8rem;">
             <label>Status</label>
             <select id="c_status">
-                <option value="prospeccao">🆕 Prospecção / Visita</option>
+                <option value="prospeccao">🆕 Visita / Prospecção</option>
                 <option value="orcamento">📄 Orçamento Enviado</option>
                 <option value="fechado">✅ Fechado / Vendido</option>
+                <option value="perdido">❌ Não Fechado</option>
             </select>
-
-            <label>Follow-up (Data de Retorno)</label>
+            <label>Próximo Contato</label>
             <input type="date" id="c_follow">
-
             <label>Notas de Negociação</label>
-            <textarea id="c_notas" rows="2" placeholder="Ex: Cliente quer desconto no kit..."></textarea>
-
-            <button class="btn btn-save" id="btn-salvar" onclick="salvarCliente()">💾 SALVAR / ATUALIZAR PLANILHA</button>
+            <textarea id="c_notas" rows="3" placeholder="Relato da conversa..."></textarea>
+            <div id="hist_box" class="history-info"></div>
+            <button class="btn btn-save" id="btn-salvar-crm" onclick="salvarCliente()">💾 ATUALIZAR FUNIL (PLANILHA)</button>
         </div>
     </div>
 
     <div id="medicao" class="tab-content">
         <div class="card">
-            <h2>📏 Nova Peça</h2>
-            <input type="text" id="m_amb" placeholder="Ambiente (ex: Box)">
+            <h3>📏 Nova Peça</h3>
+            <input type="text" id="m_amb" placeholder="Ambiente (Ex: Cozinha)">
             <div class="grid">
-                <div><label>Largura</label><input type="number" id="m_l"></div>
-                <div><label>Altura</label><input type="number" id="m_h"></div>
+                <div><label>Kit/Perfil</label><select id="m_kit"><option>Preto</option><option>Branco</option><option>Bronze</option><option>Natural</option></select></div>
+                <div><label>Instalação</label><select id="m_inst"><option>Alvenaria</option><option>Madeira</option><option>Metálica</option></select></div>
             </div>
-            <label>Vidro</label>
             <div class="grid">
-                <select id="m_tipo"><option>Temperado</option><option>Laminado</option><option>Espelho</option></select>
-                <select id="m_esp"><option>6mm</option><option selected>8mm</option><option>10mm</option></select>
+                <div><label>Largura (mm)</label><input type="number" id="m_l"></div>
+                <div><label>Altura (mm)</label><input type="number" id="m_h"></div>
             </div>
-            <textarea id="m_obs" rows="2" placeholder="Observações..."></textarea>
-            <button class="btn btn-gps" onclick="document.getElementById('f_input').click()">📷 FOTO</button>
+            <div class="grid">
+                <div><label>Vidro</label><select id="m_tipo"><option>Temperado</option><option>Laminado</option><option>Espelho</option></select></div>
+                <div><label>Espessura</label><select id="m_esp"><option>6mm</option><option selected>8mm</option><option>10mm</option></select></div>
+            </div>
+            <label>📐 Furação / Recortes</label>
+            <input type="text" id="m_furo" placeholder="Furos, recortes, detalhes...">
+            <label>Observações</label>
+            <textarea id="m_obs" rows="2" placeholder="Notas técnicas..."></textarea>
+            <button class="btn btn-gps" style="background:#0ea5e9" onclick="document.getElementById('f_input').click()">📷 FOTO</button>
             <input type="file" id="f_input" accept="image/*" capture="environment" style="display:none" onchange="processarFoto(this)">
             <img id="preview">
             <button class="btn btn-main" onclick="addPeca()">+ ADICIONAR PEÇA</button>
         </div>
         <div id="lista-pecas"></div>
-        <button class="btn btn-pdf" onclick="gerarPDF()">📄 GERAR PDF</button>
+        <div class="grid">
+            <button class="btn btn-pdf" onclick="gerarPDF()">📄 PDF</button>
+            <button class="btn btn-wpp" onclick="enviarWhatsApp()">🟢 WHATSAPP</button>
+        </div>
+        <button class="btn" style="background:#94a3b8; color:white" onclick="resetMedicao()">🔄 LIMPAR LISTA</button>
     </div>
 </div>
 
@@ -114,21 +117,19 @@
         document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
         document.getElementById(tabId).classList.add('active');
-        event.currentTarget.classList.add('active');
+        document.getElementById('btn-tab-' + (tabId === 'crm' ? 'crm' : 'med')).classList.add('active');
     }
 
-    // --- BUSCA NA PLANILHA ---
     async function buscarNaPlanilha() {
         const termo = document.getElementById('busca_cliente').value.toLowerCase();
         const statusDiv = document.getElementById('status_busca');
-        if(!termo) return alert("Digite um nome!");
-
+        const histBox = document.getElementById('hist_box');
+        if(!termo) return;
         statusDiv.innerHTML = "⏳ Buscando...";
         try {
-            const response = await fetch(GOOGLE_URL);
-            const lista = await response.json();
-            const c = lista.find(item => item.nome.toLowerCase().includes(termo));
-
+            const r = await fetch(GOOGLE_URL);
+            const lista = await r.json();
+            const c = lista.find(i => i.nome.toLowerCase().includes(termo));
             if(c) {
                 document.getElementById('c_nome').value = c.nome;
                 document.getElementById('c_tel').value = c.tel;
@@ -136,27 +137,23 @@
                 document.getElementById('c_gps').value = c.gps;
                 document.getElementById('c_status').value = c.status;
                 document.getElementById('c_follow').value = c.follow;
-                document.getElementById('c_notas').value = c.notas;
-                statusDiv.innerHTML = "<b style='color:green'>✅ Cliente carregado!</b>";
-            } else {
-                statusDiv.innerHTML = "<b style='color:red'>❌ Não encontrado.</b>";
-            }
-        } catch (e) { alert("Erro ao ler planilha."); }
+                histBox.style.display = "block";
+                histBox.innerText = "HISTÓRICO:\n" + (c.notas || "");
+                statusDiv.innerHTML = "<b style='color:green'>✅ Localizado!</b>";
+            } else { statusDiv.innerHTML = "<b style='color:red'>❌ Não encontrado.</b>"; }
+        } catch (e) { alert("Erro de conexão."); }
     }
 
-    // --- GPS ---
     function pegarLocalizacao() {
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(pos => {
                 document.getElementById('c_gps').value = `https://www.google.com/maps?q=${pos.coords.latitude},${pos.coords.longitude}`;
-                alert("📍 Localização Capturada!");
             });
         }
     }
 
-    // --- SALVAR ---
     async function salvarCliente() {
-        const btn = document.getElementById('btn-salvar');
+        const btn = document.getElementById('btn-salvar-crm');
         const dados = {
             nome: document.getElementById('c_nome').value,
             tel: document.getElementById('c_tel').value,
@@ -166,18 +163,16 @@
             follow: document.getElementById('c_follow').value,
             notas: document.getElementById('c_notas').value
         };
-
         if(!dados.nome) return alert("Nome obrigatório!");
         btn.innerText = "⏳ SALVANDO...";
-        
         try {
             await fetch(GOOGLE_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(dados) });
-            alert("✅ Planilha atualizada!");
-            btn.innerText = "💾 SALVAR / ATUALIZAR PLANILHA";
+            alert("✅ Planilha Atualizada!");
+            document.getElementById('c_notas').value = "";
         } catch (e) { alert("Erro ao enviar."); }
+        finally { btn.innerText = "💾 ATUALIZAR FUNIL (PLANILHA)"; }
     }
 
-    // --- MEDIÇÃO ---
     function processarFoto(input) {
         if (input.files[0]) {
             const reader = new FileReader();
@@ -186,8 +181,7 @@
                 img.src = e.target.result;
                 img.onload = () => {
                     const canvas = document.createElement('canvas');
-                    const max = 800;
-                    const scale = max / img.width;
+                    const max = 800; const scale = max / img.width;
                     canvas.width = max; canvas.height = img.height * scale;
                     canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
                     fotoTemp = canvas.toDataURL('image/jpeg', 0.6);
@@ -200,30 +194,47 @@
     }
 
     function addPeca() {
+        if(!document.getElementById('m_amb').value) return alert("Informe o ambiente!");
         pecas.push({
-            amb: document.getElementById('m_amb').value,
-            dim: `${document.getElementById('m_l').value}x${document.getElementById('m_h').value}mm`,
+            amb: document.getElementById('m_amb').value, kit: document.getElementById('m_kit').value,
+            inst: document.getElementById('m_inst').value, dim: `${document.getElementById('m_l').value}x${document.getElementById('m_h').value}mm`,
             vidro: `${document.getElementById('m_tipo').value} ${document.getElementById('m_esp').value}`,
-            obs: document.getElementById('m_obs').value,
-            foto: fotoTemp
+            furo: document.getElementById('m_furo').value, obs: document.getElementById('m_obs').value, foto: fotoTemp
         });
-        document.getElementById('lista-pecas').innerHTML = pecas.map(p => `
-            <div class="venda-card"><b>${p.amb}</b> - ${p.dim}<br><small>${p.vidro}</small></div>
-        `).join('');
+        renderPecas();
         fotoTemp = ""; document.getElementById('preview').style.display = 'none';
+        ['m_amb','m_l','m_h','m_furo','m_obs'].forEach(id => document.getElementById(id).value = '');
+    }
+
+    function renderPecas() {
+        document.getElementById('lista-pecas').innerHTML = pecas.map(p => `
+            <div class="venda-card"><b>${p.amb}</b> | ${p.dim}<br><small>${p.vidro} | Kit: ${p.kit} | Furo: ${p.furo || 'Não'}</small></div>
+        `).join('');
+    }
+
+    function enviarWhatsApp() {
+        if(pecas.length === 0) return alert("Lista vazia!");
+        const nome = document.getElementById('c_nome').value || "Cliente";
+        let msg = `*MEDIÇÃO TÉCNICA - ${nome}*\n\n`;
+        pecas.forEach((p, i) => {
+            msg += `*${i+1}. ${p.amb}*\n📏 Medida: ${p.dim}\n💎 Vidro: ${p.vidro}\n🛠️ Kit: ${p.kit} | Inst: ${p.inst}\n🎯 Furo/Rec: ${p.furo || 'N/A'}\n📝 Obs: ${p.obs || '-'}\n\n`;
+        });
+        window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`);
     }
 
     function gerarPDF() {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-        doc.text("MEDIÇÃO TÉCNICA", 14, 15);
+        if(pecas.length === 0) return alert("Lista vazia!");
+        const { jsPDF } = window.jspdf; const doc = new jsPDF();
+        doc.text("RELATÓRIO DE MEDIÇÃO", 14, 15);
         doc.autoTable({
-            startY: 25,
-            head: [['Peça', 'Medida', 'Vidro', 'Obs']],
-            body: pecas.map(p => [p.amb, p.dim, p.vidro, p.obs])
+            startY: 25, head: [['Peça', 'Medida', 'Vidro', 'Kit', 'Furo']],
+            body: pecas.map(p => [p.amb, p.dim, p.vidro, p.kit, p.furo]),
+            headStyles: { fillColor: [2, 132, 199] }
         });
-        doc.save(`Medicao.pdf`);
+        doc.save(`Medicao_${document.getElementById('c_nome').value || 'Obra'}.pdf`);
     }
+
+    function resetMedicao() { if(confirm("Limpar?")) { pecas = []; renderPecas(); } }
 </script>
 </body>
 </html>
