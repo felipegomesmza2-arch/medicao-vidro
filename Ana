@@ -74,7 +74,7 @@
             <textarea id="c_notas" rows="3" placeholder="O que foi conversado hoje?"></textarea>
             <div id="hist_box" class="history-info"></div>
             
-            <button class="btn btn-save" id="btn-salvar-crm" onclick="salvarCliente()">💾 SALVAR NA PLANILHA</button>
+            <button class="btn btn-save" id="btn-salvar-crm" onclick="salvarCliente()">💾 SALVAR NA PLANILHA </button>
         </div>
     </div>
 
