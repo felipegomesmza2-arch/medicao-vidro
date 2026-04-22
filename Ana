@@ -1,1 +1,298 @@
-index.html
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vidraçaria Pro - Gestão e Engenharia</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    <style>
+        :root { --primary: #0284c7; --secondary: #10b981; --bg: #f1f5f9; --white: #ffffff; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding-bottom: 60px; }
+        .header { background: var(--primary); color: white; padding: 15px; text-align: center; font-weight: bold; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .nav { display: flex; background: white; border-bottom: 1px solid #ddd; }
+        .nav-btn { flex: 1; padding: 15px; border: none; background: none; font-weight: bold; cursor: pointer; color: #64748b; font-size: 0.85rem; }
+        .nav-btn.active { color: var(--primary); border-bottom: 3px solid var(--primary); background: #f8fafc; }
+        .container { padding: 15px; max-width: 600px; margin: auto; }
+        .card { background: var(--white); padding: 18px; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 15px; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        h3 { color: #1e293b; margin: -5px 0 15px 0; font-size: 1.1rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; }
+        label { display: block; margin: 12px 0 5px; font-weight: 600; color: #475569; font-size: 0.82rem; }
+        input, select, textarea { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; box-sizing: border-box; font-size: 1rem; }
+        .btn { border: none; padding: 15px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; font-size: 0.9rem; transition: 0.2s; }
+        .btn-main { background: var(--primary); color: white; }
+        .btn-gps { background: #6366f1; color: white; }
+        .btn-save { background: var(--secondary); color: white; }
+        .btn-pdf { background: #ef4444; color: white; }
+        .btn-wpp { background: #25d366; color: white; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .venda-card { background: white; border-left: 5px solid #0284c7; padding: 12px; border-radius: 8px; margin-bottom: 10px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); font-size: 0.85rem; }
+        #preview { max-width: 100%; border-radius: 8px; display: none; margin: 10px 0; border: 1px solid #ddd; }
+        .history-info { background: #fefce8; border: 1px dashed #facc15; padding: 10px; border-radius: 8px; font-size: 0.82rem; color: #854d0e; margin-top: 10px; display: none; white-space: pre-wrap; max-height: 100px; overflow-y: auto; }
+    </style>
+</head>
+<body>
+
+<div class="header">VIDRAÇARIA PRO - SISTEMA DE CAMPO</div>
+
+<div class="nav">
+    <button class="nav-btn active" id="btn-tab-crm" onclick="openTab('crm')">🏠 CRM / FUNIL</button>
+    <button class="nav-btn" id="btn-tab-med" onclick="openTab('medicao')">📏 MEDIÇÃO & TÉCNICO</button>
+</div>
+
+<div class="container">
+    <div id="crm" class="tab-content active">
+        <div class="card">
+            <h3>🔍 Buscar Cliente</h3>
+            <div style="display: flex; gap: 8px;">
+                <input type="text" id="busca_cliente" placeholder="Digite o nome...">
+                <button class="btn btn-main" style="width: 40%; margin-top:0" onclick="buscarNaPlanilha()">BUSCAR</button>
+            </div>
+            <div id="status_busca" style="margin-top: 10px; font-size: 0.85rem;"></div>
+        </div>
+        <div class="card">
+            <h3>📝 Dados Comerciais</h3>
+            <input type="text" id="c_nome" placeholder="Nome do Cliente">
+            <input type="tel" id="c_tel" placeholder="WhatsApp">
+            <input type="text" id="c_end" placeholder="Endereço">
+            <button class="btn btn-gps" onclick="pegarLocalizacao()">📍 CAPTURAR GPS ATUAL</button>
+            <input type="text" id="c_gps" placeholder="Link Maps" readonly style="background: #f8fafc; font-size: 0.75rem;">
+            
+            <label>Status</label>
+            <select id="c_status">
+                <option value="prospeccao">🆕 Visita / Prospecção</option>
+                <option value="orcamento">📄 Orçamento Enviado</option>
+                <option value="fechado">✅ Fechado / Vendido</option>
+                <option value="perdido">❌ Perdido</option>
+            </select>
+            
+            <label>Data de Retorno</label>
+            <input type="date" id="c_follow">
+            
+            <label>Notas de Visita / Histórico</label>
+            <textarea id="c_notas" rows="3" placeholder="O que foi conversado hoje?"></textarea>
+            <div id="hist_box" class="history-info"></div>
+            
+            <button class="btn btn-save" id="btn-salvar-crm" onclick="salvarCliente()">💾 SALVAR NA PLANILHA</button>
+        </div>
+    </div>
+
+    <div id="medicao" class="tab-content">
+        <div class="card">
+            <h3>📏 Nova Medição</h3>
+            <input type="text" id="m_amb" placeholder="Ambiente (Ex: Box Suíte)">
+            
+            <div class="grid">
+                <div><label>Kit/Perfil</label><select id="m_kit"><option>Preto</option><option>Branco</option><option>Bronze</option><option>Natural</option><option>Champagne</option></select></div>
+                <div><label>Instalação</label><select id="m_inst"><option>Alvenaria</option><option>Madeira</option><option>Metálica</option><option>Drywall</option></select></div>
+            </div>
+
+            <div class="grid">
+                <div><label>Largura (mm)</label><input type="number" id="m_l" placeholder="0"></div>
+                <div><label>Altura (mm)</label><input type="number" id="m_h" placeholder="0"></div>
+            </div>
+
+            <div class="grid">
+                <div><label>Tipo de Vidro</label><select id="m_tipo"><option>Temperado</option><option>Laminado</option><option>Espelho</option><option>Comum</option></select></div>
+                <div><label>Espessura</label><select id="m_esp"></select></div>
+            </div>
+
+            <label>Cor do Vidro</label>
+            <select id="m_cor">
+                <option>Incolor</option><option>Fumê</option><option>Verde</option><option>Bronze</option><option>Outros</option>
+            </select>
+
+            <label>📐 Furação / Recortes</label>
+            <input type="text" id="m_furo" placeholder="Furos, entalhes ou recortes...">
+            
+            <label>Observações Técnicas</label>
+            <textarea id="m_obs" rows="2" placeholder="Detalhes específicos..."></textarea>
+            
+            <button class="btn btn-gps" style="background:#0ea5e9" onclick="document.getElementById('f_input').click()">📷 TIRAR FOTO</button>
+            <input type="file" id="f_input" accept="image/*" capture="environment" style="display:none" onchange="processarFoto(this)">
+            <img id="preview">
+            
+            <button class="btn btn-main" onclick="addPeca()">+ ADICIONAR À LISTA</button>
+        </div>
+
+        <div id="lista-pecas"></div>
+        
+        <div class="grid">
+            <button class="btn btn-pdf" onclick="gerarPDF()">📄 PDF TÉCNICO</button>
+            <button class="btn btn-wpp" onclick="enviarWhatsApp()">🟢 ENVIAR WPP</button>
+        </div>
+        <button class="btn" style="background:#94a3b8; color:white" onclick="resetMedicao()">🔄 LIMPAR LISTA</button>
+    </div>
+</div>
+
+<script>
+    const GOOGLE_URL = "https://script.google.com/macros/s/AKfycbylg_O9H7Y2Z5NuzvpLGyLWY-YHwPnH1AExcbFltzZCuZc2BYMbKmDRfCk5oMglOGAu/exec";
+    let pecas = [];
+    let fotoTemp = "";
+
+    // Popular espessuras de 1 a 10mm
+    const espSelect = document.getElementById('m_esp');
+    for(let i=1; i<=10; i++) {
+        let opt = document.createElement('option');
+        opt.value = i + 'mm'; opt.text = i + 'mm';
+        if(i === 8) opt.selected = true;
+        espSelect.appendChild(opt);
+    }
+
+    function openTab(tabId) {
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+        document.getElementById('btn-tab-' + (tabId === 'crm' ? 'crm' : 'med')).classList.add('active');
+    }
+
+    // --- CRM ---
+    async function buscarNaPlanilha() {
+        const termo = document.getElementById('busca_cliente').value.toLowerCase();
+        const statusDiv = document.getElementById('status_busca');
+        const histBox = document.getElementById('hist_box');
+        if(!termo) return;
+        statusDiv.innerHTML = "⏳ Pesquisando...";
+        try {
+            const r = await fetch(GOOGLE_URL);
+            const lista = await r.json();
+            const c = lista.find(i => i.nome.toLowerCase().includes(termo));
+            if(c) {
+                document.getElementById('c_nome').value = c.nome;
+                document.getElementById('c_tel').value = c.tel;
+                document.getElementById('c_end').value = c.end;
+                document.getElementById('c_gps').value = c.gps;
+                document.getElementById('c_status').value = c.status;
+                document.getElementById('c_follow').value = c.follow;
+                histBox.style.display = "block";
+                histBox.innerText = "HISTÓRICO:\n" + (c.notas || "");
+                statusDiv.innerHTML = "<b style='color:green'>✅ Localizado!</b>";
+            } else { statusDiv.innerHTML = "<b style='color:red'>❌ Não encontrado.</b>"; }
+        } catch (e) { alert("Erro de conexão."); }
+    }
+
+    function pegarLocalizacao() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(pos => {
+                document.getElementById('c_gps').value = `https://www.google.com/maps?q=${pos.coords.latitude},${pos.coords.longitude}`;
+            });
+        }
+    }
+
+    async function salvarCliente() {
+        const btn = document.getElementById('btn-salvar-crm');
+        const dados = {
+            nome: document.getElementById('c_nome').value,
+            tel: document.getElementById('c_tel').value,
+            end: document.getElementById('c_end').value,
+            gps: document.getElementById('c_gps').value,
+            status: document.getElementById('c_status').value,
+            follow: document.getElementById('c_follow').value,
+            notas: document.getElementById('c_notas').value
+        };
+        if(!dados.nome) return alert("Nome obrigatório!");
+        btn.innerText = "⏳ SINCRONIZANDO...";
+        try {
+            await fetch(GOOGLE_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(dados) });
+            alert("✅ Dados salvos com sucesso!");
+            // LIMPAR CAMPOS APÓS SALVAR
+            ['c_nome','c_tel','c_end','c_gps','c_follow','c_notas','busca_cliente'].forEach(id => document.getElementById(id).value = '');
+            document.getElementById('hist_box').style.display = 'none';
+            document.getElementById('status_busca').innerHTML = '';
+        } catch (e) { alert("Erro ao enviar."); }
+        finally { btn.innerText = "💾 SALVAR NA PLANILHA"; }
+    }
+
+    // --- MEDIÇÃO ---
+    function processarFoto(input) {
+        if (input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = e => {
+                const img = new Image();
+                img.src = e.target.result;
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const max = 800; const scale = max / img.width;
+                    canvas.width = max; canvas.height = img.height * scale;
+                    canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+                    fotoTemp = canvas.toDataURL('image/jpeg', 0.6);
+                    document.getElementById('preview').src = fotoTemp;
+                    document.getElementById('preview').style.display = 'block';
+                }
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    function addPeca() {
+        if(!document.getElementById('m_amb').value) return alert("Informe o ambiente!");
+        pecas.push({
+            amb: document.getElementById('m_amb').value, 
+            kit: document.getElementById('m_kit').value,
+            inst: document.getElementById('m_inst').value, 
+            dim: `${document.getElementById('m_l').value}x${document.getElementById('m_h').value}mm`,
+            vidro: `${document.getElementById('m_tipo').value} ${document.getElementById('m_esp').value} (${document.getElementById('m_cor').value})`,
+            furo: document.getElementById('m_furo').value, 
+            obs: document.getElementById('m_obs').value, 
+            foto: fotoTemp
+        });
+        renderPecas();
+        fotoTemp = ""; document.getElementById('preview').style.display = 'none';
+        ['m_amb','m_l','m_h','m_furo','m_obs'].forEach(id => document.getElementById(id).value = '');
+    }
+
+    function renderPecas() {
+        document.getElementById('lista-pecas').innerHTML = pecas.map(p => `
+            <div class="venda-card"><b>${p.amb}</b> | ${p.dim}<br><small>${p.vidro} | Kit: ${p.kit} | Furo: ${p.furo || 'Não'}</small></div>
+        `).join('');
+    }
+
+    function enviarWhatsApp() {
+        if(pecas.length === 0) return alert("Adicione peças primeiro!");
+        let msg = `*RESUMO DE MEDIÇÃO TÉCNICA*\n*Cliente:* ${document.getElementById('c_nome').value || 'Não informado'}\n\n`;
+        pecas.forEach((p, i) => {
+            msg += `*${i+1}. ${p.amb}*\n📏 ${p.dim}\n💎 ${p.vidro}\n🛠️ Kit: ${p.kit} | Inst: ${p.inst}\n🎯 Furo: ${p.furo || 'N/A'}\n\n`;
+        });
+        window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`);
+    }
+
+    function gerarPDF() {
+        if(pecas.length === 0) return alert("Lista vazia!");
+        const { jsPDF } = window.jspdf; 
+        const doc = new jsPDF();
+        
+        doc.setFontSize(14);
+        doc.text("RELATÓRIO TÉCNICO DE MEDIÇÃO", 14, 15);
+        doc.setFontSize(10);
+        doc.text(`Cliente: ${document.getElementById('c_nome').value || 'N/A'}`, 14, 22);
+        
+        doc.autoTable({
+            startY: 28,
+            head: [['Local', 'Medida', 'Vidro/Cor', 'Kit', 'Furo/Obs']],
+            body: pecas.map(p => [p.amb, p.dim, p.vidro, p.kit, `${p.furo || ''} ${p.obs || ''}`]),
+            headStyles: { fillColor: [2, 132, 199] },
+            theme: 'grid'
+        });
+
+        // Adicionar Fotos no final
+        if(pecas.some(p => p.foto)) {
+            doc.addPage();
+            doc.text("REGISTRO FOTOGRÁFICO", 14, 15);
+            let y = 25;
+            pecas.forEach(p => {
+                if(p.foto) {
+                    if(y > 230) { doc.addPage(); y = 25; }
+                    doc.text(`Local: ${p.amb}`, 14, y);
+                    doc.addImage(p.foto, 'JPEG', 14, y + 2, 60, 45);
+                    y += 55;
+                }
+            });
+        }
+        doc.save(`Medicao_${document.getElementById('c_nome').value || 'Obra'}.pdf`);
+    }
+
+    function resetMedicao() { if(confirm("Deseja apagar toda a lista de medição?")) { pecas = []; renderPecas(); } }
+</script>
+</body>
+</html>
